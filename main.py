@@ -28,13 +28,14 @@ def moves_from_game(game) -> str:
     return str(game).split("\n")[-1]
 
 
-def get_gpt4_move_from_pgn_moves(client, game, *, invalid_moves=None) -> Optional[str]:
+def get_gpt4_move_from_pgn_moves(client, game, *, invalid_moves: Optional[Set[str]]=None) -> Optional[str]:
     invalid_moves_message = ""
     if invalid_moves:
         print_debug("Invalid moves:", invalid_moves)
+        invalid_moves_list = "\n ".join(invalid_moves)
         invalid_moves_message = (
-            "\nNote that the following moves are invalid, so should not be returned: "
-            f"{', '.join(invalid_moves)}."
+            "\nNote that the following moves are invalid, and must not be returned:\n"
+            f" {invalid_moves_list}\n"
         )
 
     prompt = f"""
@@ -46,11 +47,18 @@ You will always play as Black.
 
 You will only reply with your move in standard algebraic notation, e.g. "e4" or "Nf3".
 
-Do not include the move number.
+If you are being asked to play a move, then there is still a valid move you can make. This
+is always the case, even if you believe the game is over.
 
-Here are the moves so far:
-{moves_from_game(game)}
+Do not include the move number. Do not include any other words in your response apart from
+the move you wish to make. Do not return your move in quotes. Do not start your move with
+a "+" symbol. Return a single move for Black only.
 {invalid_moves_message}
+Here are the moves so far:
+
+{moves_from_game(game)}
+
+Your move (which will replace the * in the line above):
 """
 
     try:
