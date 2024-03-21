@@ -4,7 +4,7 @@ import chess.engine
 import chess.pgn
 
 from openai import OpenAI
-from typing import List, Optional
+from typing import List, Optional, Set
 
 debug=False
 
@@ -77,7 +77,7 @@ def get_gpt4_move(client, game, board) -> Optional[chess.Move]:
     - A chess.Move object if a valid move is returned.
     - None if an error occurs, or if no valid move is returned after 5 retries.
     """
-    invalid_moves: List[str] = []
+    invalid_moves: Set[str] = set()
 
     def _get_gpt4_move(client, game, board) -> Optional[chess.Move]:
         nonlocal invalid_moves
@@ -99,7 +99,7 @@ def get_gpt4_move(client, game, board) -> Optional[chess.Move]:
         except chess.AmbiguousMoveError:
             print_debug(f"Ambiguous move from GPT-4: {gpt4_move_raw}.")
 
-        invalid_moves.append(gpt4_move_raw)
+        invalid_moves.add(gpt4_move_raw.strip())
         return None
 
     retries = 0
