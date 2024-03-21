@@ -94,6 +94,10 @@ def get_gpt4_move(client, game, board) -> Optional[chess.Move]:
             print_debug(f"Syntactically invalid move from GPT-4: {gpt4_move_raw}.")
         except chess.IllegalMoveError:
             print_debug(f"Semantically invalid move from GPT-4: {gpt4_move_raw}.")
+        # TODO: Handle ambiguous moves differently to invalid moves (e.g. pass them in
+        # as additional context to the next prompt, rather than discarding them entirely).
+        except chess.AmbiguousMoveError:
+            print_debug(f"Ambiguous move from GPT-4: {gpt4_move_raw}.")
 
         invalid_moves.append(gpt4_move_raw)
         return None
