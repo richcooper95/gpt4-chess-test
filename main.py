@@ -15,10 +15,11 @@ def print_debug(*args, **kwargs) -> None:
 def parse_cli() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Play a game of chess between Stockfish and GPT-4.")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
+    parser.add_argument("--stockfish-path", type=str, default="/opt/homebrew/bin/stockfish", help="Path to the Stockfish binary. Defaults to /opt/homebrew/bin/stockfish")
     return parser.parse_args()
 
-def get_stockfish_move(board) -> chess.Move:
-    with chess.engine.SimpleEngine.popen_uci("/opt/homebrew/bin/stockfish") as engine:
+def get_stockfish_move(board, stockfish_path) -> chess.Move:
+    with chess.engine.SimpleEngine.popen_uci(stockfish_path) as engine:
         result = engine.play(board, chess.engine.Limit(time=0.1))
         assert result.move is not None
         return result.move
@@ -121,7 +122,7 @@ def main():
 
     while not board.is_game_over():
         # Stockfish's move
-        stockfish_move = get_stockfish_move(board)
+        stockfish_move = get_stockfish_move(board, args.stockfish_path)
 
         print_debug(f"Stockfish moves: {board.san(stockfish_move)}")
 
