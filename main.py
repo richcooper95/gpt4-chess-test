@@ -29,10 +29,13 @@ def moves_from_game(game) -> str:
 
 
 def get_gpt4_move_from_pgn_moves(client, game, *, invalid_moves=None) -> Optional[str]:
-    print_debug("Invalid moves:", invalid_moves)
-    invalid_moves_message = "" if invalid_moves else f"""
-Note that the following moves are invalid, so should not be returned: {", ".join(invalid_moves)}.
-"""
+    invalid_moves_message = ""
+    if invalid_moves:
+        print_debug("Invalid moves:", invalid_moves)
+        invalid_moves_message = (
+            "\nNote that the following moves are invalid, so should not be returned: "
+            f"{', '.join(invalid_moves)}."
+        )
 
     prompt = f"""
 You are chess Grandmaster. You are about to be given a list of moves in PGN notation, and
