@@ -96,6 +96,9 @@ def get_gpt4_move(client, game, board) -> Optional[chess.Move]:
             print_debug("Error getting move from GPT-4. Exiting.")
             return None
 
+        # GPT-4 likes to return moves starting with "+", which is not valid, so strip it.
+        gpt4_move_raw = gpt4_move_raw.lstrip("+")
+
         try:
             return board.parse_san(gpt4_move_raw)
         except chess.InvalidMoveError:
