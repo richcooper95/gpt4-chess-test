@@ -4,31 +4,44 @@ import chess.engine
 import chess.pgn
 
 from openai import OpenAI
-from typing import List, Optional, Set
+from typing import Optional, Set
 
-debug=False
+debug = False
+
 
 def print_debug(*args, **kwargs) -> None:
     if debug:
         print(*args, **kwargs)
 
+
 def parse_cli() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Play a game of chess between Stockfish and GPT-4.")
+    parser = argparse.ArgumentParser(
+        description="Play a game of chess between Stockfish and GPT-4."
+    )
     parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
-    parser.add_argument("--stockfish-path", type=str, default="/opt/homebrew/bin/stockfish", help="Path to the Stockfish binary. Defaults to /opt/homebrew/bin/stockfish")
+    parser.add_argument(
+        "--stockfish-path",
+        type=str,
+        default="/opt/homebrew/bin/stockfish",
+        help="Path to the Stockfish binary. Defaults to /opt/homebrew/bin/stockfish",
+    )
     return parser.parse_args()
 
-def get_stockfish_move(board, stockfish_path) -> chess.Move:
+
+def get_stockfish_move(board: chess.Board, stockfish_path: str) -> chess.Move:
     with chess.engine.SimpleEngine.popen_uci(stockfish_path) as engine:
         result = engine.play(board, chess.engine.Limit(time=0.1))
         assert result.move is not None
         return result.move
 
-def moves_from_game(game) -> str:
+
+def moves_from_game(game: chess.pgn.Game) -> str:
     return str(game).split("\n")[-1]
 
 
-def get_gpt4_move_from_pgn_moves(client, game, *, invalid_moves: Optional[Set[str]]=None) -> Optional[str]:
+def get_gpt4_move_from_pgn_moves(
+    client: OpenAI, game: chess.pgn.Game, *, invalid_moves: Optional[Set[str]] = None
+) -> Optional[str]:
     invalid_moves_message = ""
     if invalid_moves:
         print_debug("Invalid moves:", invalid_moves)
@@ -77,7 +90,10 @@ Your move (which will replace the * in the line above):
         print_debug(f"Error getting move from GPT-4: {exc}")
         return None
 
-def get_gpt4_move(client, game, board) -> Optional[chess.Move]:
+
+def get_gpt4_move(
+    client: OpenAI, game: chess.pgn.Game, board: chess.Board
+) -> Optional[chess.Move]:
     """
     Get a move from GPT-4, retrying up to 5 times if necessary.
 
@@ -87,10 +103,14 @@ def get_gpt4_move(client, game, board) -> Optional[chess.Move]:
     """
     invalid_moves: Set[str] = set()
 
-    def _get_gpt4_move(client, game, board) -> Optional[chess.Move]:
+    def _get_gpt4_move(
+        client: OpenAI, game: chess.pgn.Game, board: chess.Board
+    ) -> Optional[chess.Move]:
         nonlocal invalid_moves
 
-        gpt4_move_raw = get_gpt4_move_from_pgn_moves(client, game, invalid_moves=invalid_moves)
+        gpt4_move_raw = get_gpt4_move_from_pgn_moves(
+            client, game, invalid_moves=invalid_moves
+        )
 
         if gpt4_move_raw is None:
             print_debug("Error getting move from GPT-4. Exiting.")
@@ -122,25 +142,17 @@ def get_gpt4_move(client, game, board) -> Optional[chess.Move]:
         retries += 1
     return None
 
-def main():
-    global debug
 
-    args = parse_cli()
-    debug = args.debug
-
-    client = OpenAI()
-
-    # Track the game as a PGN. This allows us to print the list of moves to pass to GPT-4,
-    # and to print the final list of moves at the end.
-    game = chess.pgn.Game()
-    node = game
-
-    # Initialise the board.
-    board = chess.Board()
-
+def play_game(
+    client: OpenAI,
+    board: chess.Board,
+    game: chess.pgn.Game,
+    node: chess.pgn.Game,
+    stockfish_path: str,
+) -> None:
     while not board.is_game_over():
         # Stockfish's move
-        stockfish_move = get_stockfish_move(board, args.stockfish_path)
+        stockfish_move = get_stockfish_move(board, stockfish_path)
 
         print_debug(f"Stockfish moves: {board.san(stockfish_move)}")
 
@@ -176,9 +188,34 @@ def main():
     game.headers["White"] = "Stockfish"
     game.headers["Black"] = "GPT-4"
 
+
+def main() -> None:
+    global debug
+
+    args = parse_cli()
+    debug = args.debug
+
+    client = OpenAI()
+
+    # Track the game as a PGN. This allows us to print the list of moves to pass to GPT-4,
+    # and to print the final list of moves at the end.
+    game = chess.pgn.Game()
+    node = game
+
+    # Initialise the board.
+    board = chess.Board()
+
+    # Play the game.
+    play_game(client, board, game, node, args.stockfish_path)
+
     # print the list of moves
     print_debug("")
     print(moves_from_game(game))
+    print_debug("")
+    print_debug(
+        "Paste these moves into Chess.com to watch the game: https://www.chess.com/analysis"
+    )
+
 
 if __name__ == "__main__":
     main()
