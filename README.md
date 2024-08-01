@@ -37,7 +37,7 @@ python3 main.py --debug --stockfish-path=/path/to/your/stockfish
 
 The `--debug` flag will print each move, and any erroneous moves from GPT-4, in real time.
 
-### Example
+### Example
 
 #### Console output
 
