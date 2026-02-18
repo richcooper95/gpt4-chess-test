@@ -1,171 +1,127 @@
-# gpt4-chess-test
+# Chess Eval
 
-This is a simple script which plays a game of chess between Stockfish and GPT-4.
+An [Inspect](https://inspect.aisi.org.uk/) evaluation that tests LLMs' chess ability against
+[Stockfish](https://stockfishchess.org/) at various skill levels. Models are accessed via
+[OpenRouter](https://openrouter.ai/), so any model available there can be evaluated with no
+code changes.
 
-It passes through a list of moves in the game to the OpenAI API with a custom
-prompt, and makes the suggested move in a game against Stockfish.
+## Eval variants
 
-The PGN is then printed to console, so it can be pasted into a UI to analyse the game,
-e.g. on [Chess.com](https://www.chess.com/analysis) or [Lichess](https://lichess.org/paste).
+| File | Description |
+|---|---|
+| `main.py` | Stateless — each turn sends a standalone prompt with the current PGN |
+| `main_in_context.py` | In-context — maintains the full conversation history so the model can build on its prior reasoning |
+| `main_image.py` | Image — like in-context, but each turn also includes a rendered board image (requires a vision-capable model) |
 
-So far, Stockfish has (predictably) won every game. 🎣
+## What it measures
 
-## Usage
+For each model, the eval plays chess games across a matrix of:
 
-### Dependencies
+- **Stockfish skill levels** (0-20, configurable)
+- **LLM color** (white and black)
+- **Repeated games** (via `--epochs`)
 
-Set the `OPENAPI_API_KEY` environment variable to an OpenAPI token from a paid account
-with access to GPT-4.
+And tracks:
 
-Create a virtual environment, activate it, and install dependencies:
+| Metric | Description |
+|---|---|
+| **Win/loss/draw rate** | `accuracy` in Inspect (1.0 = win, 0.5 = draw, 0.0 = loss) |
+| **Game length** | Average full moves per game (longer against stronger Stockfish = better play) |
+| **Invalid move rate** | Average invalid move attempts per game (lower = better notation understanding) |
 
-```
+## Setup
+
+### Prerequisites
+
+- Python 3.10+
+- A [Stockfish](https://stockfishchess.org/) binary (e.g. `brew install stockfish` on macOS)
+- An [OpenRouter](https://openrouter.ai/) API key
+- For `main_image.py`: no extra system dependencies (uses [fentoboardimage](https://pypi.org/project/fentoboardimage/) + Pillow)
+
+### Install dependencies
+
+```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-You also need to install a Stockfish engine, e.g. via `brew install stockfish` on MacOS.
+### Set your API key
 
-### Run the script
-
-Run the script as follows:
-
-```
-python3 main.py --debug --stockfish-path=/path/to/your/stockfish
+```bash
+export OPENROUTER_API_KEY=your-openrouter-api-key
 ```
 
-The `--debug` flag will print each move, and any erroneous moves from GPT-4, in real time.
+## Usage
 
-### Example
+Run an evaluation with `inspect eval`:
 
-#### Console output
+```bash
+# Stateless (main.py)
+inspect eval main.py --model openrouter/openai/gpt-4o --epochs 3
 
-```
-(venv) [Richs-MBP] [main] [] [gpt4-chess-test]
-  > python3 main.py --debug
-Stockfish moves: e4
-GPT-4 moves: c5
-Stockfish moves: Nc3
-GPT-4 moves: d6
-Stockfish moves: Nf3
-GPT-4 moves: Nf6
-Stockfish moves: d4
-GPT-4 moves: cxd4
-Stockfish moves: Nxd4
-GPT-4 moves: a6
-Stockfish moves: Bg5
-GPT-4 moves: e6
-Stockfish moves: f4
-GPT-4 moves: Be7
-Stockfish moves: Qf3
-GPT-4 moves: Qc7
-Stockfish moves: O-O-O
-GPT-4 moves: Nbd7
-Stockfish moves: Be2
-GPT-4 moves: b5
-Stockfish moves: Bxf6
-GPT-4 moves: Nxf6
-Stockfish moves: e5
-GPT-4 moves: Bb7
-Stockfish moves: exf6
-GPT-4 moves: Bxf3
-Stockfish moves: Bxf3
-GPT-4 moves: Bxf6
-Stockfish moves: Bxa8
-Syntactically invalid move from GPT-4: "O-O".
-Invalid moves: ['"O-O"']
-GPT-4 moves: O-O
-Stockfish moves: Bf3
-GPT-4 moves: b4
-Stockfish moves: Ne4
-GPT-4 moves: Be7
-Stockfish moves: Nc6
-GPT-4 moves: Qxc6
-Stockfish moves: Nf6+
-GPT-4 moves: gxf6
-Stockfish moves: Bxc6
-GPT-4 moves: Rc8
-Stockfish moves: Bb7
-GPT-4 moves: Rc7
-Stockfish moves: Bxa6
-GPT-4 moves: Ra7
-Stockfish moves: Bc4
-GPT-4 moves: d5
-Stockfish moves: Bxd5
-GPT-4 moves: exd5
-Stockfish moves: Kb1
-GPT-4 moves: Bc5
-Stockfish moves: Rxd5
-GPT-4 moves: Be7
-Stockfish moves: Rd3
-GPT-4 moves: Kg7
-Stockfish moves: Rhd1
-GPT-4 moves: Bc5
-Stockfish moves: Rg3+
-GPT-4 moves: Kh6
-Stockfish moves: Rh3+
-GPT-4 moves: Kg7
-Stockfish moves: Rg3+
-GPT-4 moves: Kh6
-Stockfish moves: Rgd3
-GPT-4 moves: Kg7
-Stockfish moves: Rd7
-GPT-4 moves: Rxd7
-Stockfish moves: Rxd7
-GPT-4 moves: Kf8
-Stockfish moves: f5
-GPT-4 moves: Ke8
-Stockfish moves: Rd3
-GPT-4 moves: Ke7
-Stockfish moves: Rh3
-GPT-4 moves: Kd6
-Stockfish moves: a4
-GPT-4 moves: Ke5
-Stockfish moves: Rd3
-GPT-4 moves: Kxf5
-Stockfish moves: a5
-GPT-4 moves: Ke4
-Stockfish moves: Rh3
-GPT-4 moves: f5
-Stockfish moves: a6
-GPT-4 moves: Ba7
-Stockfish moves: Rd3
-GPT-4 moves: f4
-Stockfish moves: Rd7
-GPT-4 moves: Bc5
-Stockfish moves: Rd3
-Semantically invalid move from GPT-4: f5-f3.
-Invalid moves: ['f5-f3']
-GPT-4 moves: Ba7
-Stockfish moves: Rd7
-GPT-4 moves: Bc5
-Stockfish moves: Rc7
-GPT-4 moves: Bb6
-Stockfish moves: Rb7
-GPT-4 moves: Ba7
-Stockfish moves: Rxa7
-GPT-4 moves: f5
-Stockfish moves: Rxh7
-GPT-4 moves: f3
-Stockfish moves: gxf3+
-GPT-4 moves: Kxf3
-Stockfish moves: a7
-GPT-4 moves: f4
-Stockfish moves: a8=Q+
-GPT-4 moves: Ke2
-Stockfish moves: Qg2+
-GPT-4 moves: Ke1
-Stockfish moves: Re7+
-GPT-4 moves: Kd1
-Stockfish moves: Qe2#
-Checkmate.
+# In-context conversation (main_in_context.py)
+inspect eval main_in_context.py --model openrouter/openai/gpt-4o --epochs 3
 
-1. e4 c5 2. Nc3 d6 3. Nf3 Nf6 4. d4 cxd4 5. Nxd4 a6 6. Bg5 e6 7. f4 Be7 8. Qf3 Qc7 9. O-O-O Nbd7 10. Be2 b5 11. Bxf6 Nxf6 12. e5 Bb7 13. exf6 Bxf3 14. Bxf3 Bxf6 15. Bxa8 O-O 16. Bf3 b4 17. Ne4 Be7 18. Nc6 Qxc6 19. Nf6+ gxf6 20. Bxc6 Rc8 21. Bb7 Rc7 22. Bxa6 Ra7 23. Bc4 d5 24. Bxd5 exd5 25. Kb1 Bc5 26. Rxd5 Be7 27. Rd3 Kg7 28. Rhd1 Bc5 29. Rg3+ Kh6 30. Rh3+ Kg7 31. Rg3+ Kh6 32. Rgd3 Kg7 33. Rd7 Rxd7 34. Rxd7 Kf8 35. f5 Ke8 36. Rd3 Ke7 37. Rh3 Kd6 38. a4 Ke5 39. Rd3 Kxf5 40. a5 Ke4 41. Rh3 f5 42. a6 Ba7 43. Rd3 f4 44. Rd7 Bc5 45. Rd3 Ba7 46. Rd7 Bc5 47. Rc7 Bb6 48. Rb7 Ba7 49. Rxa7 f5 50. Rxh7 f3 51. gxf3+ Kxf3 52. a7 f4 53. a8=Q+ Ke2 54. Qg2+ Ke1 55. Re7+ Kd1 56. Qe2# 1-0
+# With board images (main_image.py) — requires a vision-capable model
+inspect eval main_image.py --model openrouter/openai/gpt-4o --epochs 3
 ```
 
-#### Watching the game
+### Task parameters
 
-The video below shows Stockfish (white) vs. GPT-4 (black). This was one of the closer games, where GPT-4 actually held its own for a while!
+Customise Stockfish levels and path with `-T`:
 
-https://github.com/richcooper95/gpt4-chess-test/assets/58304039/7372b758-9e93-4f9b-a07d-fa64c227f9d1
+```bash
+inspect eval main.py \
+  --model openrouter/openai/gpt-4o \
+  -T stockfish_levels=[1,5,10,20] \
+  -T stockfish_path=/opt/homebrew/bin/stockfish \
+  --epochs 3
+```
+
+| Parameter | Default | Description |
+|---|---|---|
+| `stockfish_levels` | `[1, 5, 10, 20]` | List of Stockfish skill levels (0-20) |
+| `stockfish_path` | `/opt/homebrew/bin/stockfish` | Path to the Stockfish binary |
+
+### Comparing models
+
+Run the same eval with different `--model` flags:
+
+```bash
+inspect eval main.py --model openrouter/openai/gpt-4o --epochs 3
+inspect eval main.py --model openrouter/anthropic/claude-sonnet-4-20250514 --epochs 3
+inspect eval main.py --model openrouter/google/gemini-2.0-flash-001 --epochs 3
+inspect eval main.py --model openrouter/deepseek/deepseek-chat --epochs 3
+```
+
+### Viewing results
+
+Inspect includes a web UI for browsing results:
+
+```bash
+inspect view
+```
+
+This shows per-game scores, metrics, full LLM conversation transcripts, and metadata.
+You can filter by sample ID (e.g. `level-10-white`) and compare across model runs.
+
+## How it works
+
+Each eval run creates **`len(stockfish_levels) * 2`** samples (one per level per color).
+With `--epochs N`, each sample is played N times, so the total number of games is
+`len(stockfish_levels) * 2 * N`.
+
+The game loop:
+
+1. A Stockfish engine is opened and configured to the sample's skill level
+2. Moves alternate between Stockfish and the LLM based on the sample's color
+3. On each LLM turn, the full PGN is sent as a prompt and the response is parsed as SAN
+4. Invalid moves are retried up to 5 times (with feedback about which moves are invalid)
+5. The game ends on checkmate, stalemate, draw, or if the LLM fails to produce a valid move
+
+## Background
+
+This project started as a simple script pitting GPT-4 against Stockfish (see git history).
+It has since been rewritten as a proper eval harness using Inspect to test multiple
+frontier models systematically.

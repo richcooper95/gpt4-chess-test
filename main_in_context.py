@@ -1,13 +1,14 @@
 """
-Chess Eval: Test LLMs' chess ability against Stockfish at various skill levels.
+Chess Eval (In-Context): Test LLMs' chess ability with full conversation history.
 
-This is an Inspect (https://inspect.aisi.org.uk/) evaluation task that plays
-chess games between an LLM and Stockfish, tracking win/loss/draw rate, game
-length, and invalid move count.
+Unlike main.py (which sends a standalone prompt each turn), this variant
+maintains the entire conversation history so the model can build on its own
+prior reasoning. Each turn the model is asked to analyze the position, describe
+its strategy, and then provide its move.
 
 Usage:
-    inspect eval main.py --model openrouter/openai/gpt-4o --epochs 3
-    inspect eval main.py --model openrouter/anthropic/claude-sonnet-4-20250514 --epochs 3
+    inspect eval main_in_context.py --model openrouter/openai/gpt-4o --epochs 3
+    inspect eval main_in_context.py --model openrouter/anthropic/claude-sonnet-4-20250514 --epochs 3
 
 Task parameters:
     -T stockfish_levels=[1,5,10,20]
@@ -15,6 +16,7 @@ Task parameters:
 """
 
 import logging
+import re
 from typing import Optional
 
 import chess
@@ -23,7 +25,14 @@ import chess.pgn
 
 from inspect_ai import Task, task
 from inspect_ai.dataset import Sample
-from inspect_ai.model import Model, get_model
+from inspect_ai.model import (
+    ChatMessage,
+    ChatMessageAssistant,
+    ChatMessageSystem,
+    ChatMessageUser,
+    Model,
+    get_model,
+)
 from inspect_ai.scorer import (
     Score,
     SampleScore,
@@ -38,6 +47,8 @@ from inspect_ai.solver import Generate, TaskState, solver
 
 logger = logging.getLogger(__name__)
 
+MAX_RETRIES = 5
+
 
 # ---------------------------------------------------------------------------
 # Helper functions
@@ -47,46 +58,6 @@ logger = logging.getLogger(__name__)
 def moves_from_game(game: chess.pgn.Game) -> str:
     """Extract the move list string from a PGN game."""
     return str(game).split("\n")[-1]
-
-
-def build_prompt(
-    game: chess.pgn.Game,
-    llm_color: str,
-    invalid_moves: Optional[set[str]] = None,
-) -> str:
-    """Build the chess prompt for the LLM."""
-    invalid_moves_message = ""
-    if invalid_moves:
-        invalid_moves_list = "\n ".join(invalid_moves)
-        invalid_moves_message = (
-            "\nNote that the following moves are invalid, and must not be returned:\n"
-            f" {invalid_moves_list}\n"
-        )
-
-    color_name = llm_color.title()
-
-    return f"""
-You are a chess Grandmaster. You are about to be given a list of moves in PGN notation, and
-you will make the best move available to you, using all of your knowledge of chess. You
-can take all the time to think that you need. Think deeply - you are a Grandmaster!
-
-You will always play as {color_name}.
-
-You will only reply with your move in standard algebraic notation, e.g. "e4" or "Nf3".
-
-If you are being asked to play a move, then there is still a valid move you can make. This
-is always the case, even if you believe the game is over.
-
-Do not include the move number. Do not include any other words in your response apart from
-the move you wish to make. Do not return your move in quotes. Do not start your move with
-a "+" symbol. Return a single move for {color_name} only.
-{invalid_moves_message}
-Here are the moves so far:
-
-{moves_from_game(game)}
-
-Your move (which will replace the * in the line above):
-"""
 
 
 def get_termination_reason(board: chess.Board, llm_move_failed: bool) -> str:
@@ -106,45 +77,145 @@ def get_termination_reason(board: chess.Board, llm_move_failed: bool) -> str:
     return "unknown"
 
 
-async def get_llm_move(
+def build_system_message(llm_color: str, stockfish_level: int) -> str:
+    """Build the system message that establishes the persona and format."""
+    color_name = llm_color.title()
+    return f"""\
+You are a chess Grandmaster playing a game of chess. You are playing as \
+{color_name} against Stockfish (skill level {stockfish_level}).
+
+On each turn you will be told your opponent's latest move and the full move \
+list so far.
+
+Please respond in two parts:
+
+1. **Analysis**: Briefly analyze the current position and describe your \
+strategic thinking (2-4 sentences). Consider threats, piece activity, pawn \
+structure, and your plan for the next few moves.
+
+2. **Move**: On the LAST line of your response, write your move in exactly \
+this format:
+   MOVE: <your move in standard algebraic notation>
+
+For example:
+   MOVE: e4
+   MOVE: Nf3
+   MOVE: O-O
+   MOVE: Bxc6
+
+Rules:
+- Use standard algebraic notation only (e.g. e4, Nf3, O-O, Bxc6+).
+- Do not include the move number.
+- Do not put your move in quotes.
+- The MOVE: line must be the very last line of your response."""
+
+
+def build_first_turn_message(llm_color: str, game: chess.pgn.Game) -> str:
+    """Build the user message for the LLM's first turn."""
+    pgn = moves_from_game(game)
+    if llm_color == "white":
+        return (
+            "The game has begun. You are White and it is your turn to make "
+            "the first move.\n\n"
+            f"Moves so far: {pgn}\n\n"
+            "Analyze the position and make your move."
+        )
+    else:
+        return (
+            f"The game has begun. You are Black.\n\n"
+            f"Moves so far: {pgn}\n\n"
+            "Analyze the position and make your move."
+        )
+
+
+def build_turn_message(
+    opponent_move_san: str, game: chess.pgn.Game
+) -> str:
+    """Build the user message for a subsequent turn after the opponent moves."""
+    pgn = moves_from_game(game)
+    return (
+        f"Your opponent played: **{opponent_move_san}**\n\n"
+        f"Moves so far: {pgn}\n\n"
+        "Analyze the position and make your move."
+    )
+
+
+def build_invalid_move_message(
+    raw_move: str, reason: str, game: chess.pgn.Game
+) -> str:
+    """Build a user message telling the model its move was invalid."""
+    pgn = moves_from_game(game)
+    return (
+        f'Your move "{raw_move}" was invalid ({reason}). '
+        "Please reconsider and provide a legal move.\n\n"
+        f"Moves so far: {pgn}\n\n"
+        "Provide your corrected move (remember: MOVE: <move> on the last line)."
+    )
+
+
+def parse_move_from_response(text: str) -> Optional[str]:
+    """Extract the move from a 'MOVE: <move>' line in the response."""
+    match = re.search(r"^MOVE:\s*(.+)$", text.strip(), re.MULTILINE)
+    if match:
+        raw = match.group(1).strip().strip('"').strip("'").lstrip("+")
+        return raw
+    return None
+
+
+async def get_llm_move_in_context(
     model: Model,
+    messages: list[ChatMessage],
     game: chess.pgn.Game,
     board: chess.Board,
-    llm_color: str,
 ) -> tuple[Optional[chess.Move], int]:
-    """Get a move from the LLM, retrying up to 5 times on invalid moves.
+    """Get a move from the LLM using the conversation history.
+
+    Appends user/assistant messages to ``messages`` in place as the
+    conversation progresses (including retries).
 
     Returns:
         A tuple of (move, invalid_attempt_count). move is None if all retries
         were exhausted without obtaining a valid move.
     """
-    invalid_moves: set[str] = set()
     invalid_attempt_count = 0
 
-    for _ in range(5):
-        prompt = build_prompt(
-            game,
-            llm_color,
-            invalid_moves=invalid_moves if invalid_moves else None,
-        )
-
+    for attempt in range(MAX_RETRIES):
         try:
-            response = await model.generate(prompt)
-            raw_move = response.completion.strip()
-            # LLMs like to return moves starting with "+", which is not valid SAN.
-            raw_move = raw_move.lstrip("+")
+            response = await model.generate(messages)
+            completion = response.completion
+
+            messages.append(ChatMessageAssistant(content=completion))
+
+            raw_move = parse_move_from_response(completion)
+            if raw_move is None:
+                invalid_attempt_count += 1
+                messages.append(
+                    ChatMessageUser(
+                        content=build_invalid_move_message(
+                            "(no MOVE: line found)",
+                            "could not find a MOVE: line in your response",
+                            game,
+                        )
+                    )
+                )
+                continue
 
             try:
                 return board.parse_san(raw_move), invalid_attempt_count
             except chess.InvalidMoveError:
-                logger.info(f"Syntactically invalid move from LLM: {raw_move}")
+                reason = "syntactically invalid"
             except chess.IllegalMoveError:
-                logger.info(f"Semantically invalid move from LLM: {raw_move}")
+                reason = "illegal in the current position"
             except chess.AmbiguousMoveError:
-                logger.info(f"Ambiguous move from LLM: {raw_move}")
+                reason = "ambiguous — please be more specific"
 
+            logger.info(f"Invalid move from LLM: {raw_move} ({reason})")
             invalid_attempt_count += 1
-            invalid_moves.add(raw_move.strip())
+            messages.append(
+                ChatMessageUser(
+                    content=build_invalid_move_message(raw_move, reason, game)
+                )
+            )
 
         except Exception as exc:
             logger.warning(f"Error calling LLM: {exc}")
@@ -232,8 +303,12 @@ def chess_game_scorer():
 
 
 @solver
-def chess_game():
-    """Play a full chess game between the evaluated LLM and Stockfish."""
+def chess_game_in_context():
+    """Play a full chess game with persistent conversation history.
+
+    The model sees the entire conversation each turn, including its own prior
+    analysis and reasoning, allowing it to maintain strategic coherence.
+    """
 
     async def solve(state: TaskState, generate: Generate) -> TaskState:
         stockfish_level: int = state.metadata["stockfish_level"]
@@ -248,6 +323,13 @@ def chess_game():
         node = game
         total_invalid_moves = 0
         llm_move_failed = False
+        is_first_llm_turn = True
+
+        messages: list[ChatMessage] = [
+            ChatMessageSystem(
+                content=build_system_message(llm_color, stockfish_level)
+            ),
+        ]
 
         engine = chess.engine.SimpleEngine.popen_uci(stockfish_path)
         engine.configure({"Skill Level": stockfish_level})
@@ -255,10 +337,17 @@ def chess_game():
         try:
             while not board.is_game_over():
                 if llm_plays_white:
-                    # LLM (white) moves first, then Stockfish (black).
+                    # --- LLM turn (white) ---
+                    if is_first_llm_turn:
+                        messages.append(
+                            ChatMessageUser(
+                                content=build_first_turn_message(llm_color, game)
+                            )
+                        )
+                        is_first_llm_turn = False
 
-                    move, invalids = await get_llm_move(
-                        model, game, board, llm_color
+                    move, invalids = await get_llm_move_in_context(
+                        model, messages, game, board
                     )
                     total_invalid_moves += invalids
                     if move is None:
@@ -271,25 +360,49 @@ def chess_game():
                     if board.is_game_over():
                         break
 
+                    # --- Stockfish turn (black) ---
                     sf_result = engine.play(board, chess.engine.Limit(time=0.1))
                     assert sf_result.move is not None
-                    logger.info(f"Stockfish moves: {board.san(sf_result.move)}")
+                    sf_san = board.san(sf_result.move)
+                    logger.info(f"Stockfish moves: {sf_san}")
                     board.push(sf_result.move)
                     node = node.add_variation(sf_result.move)
-                else:
-                    # Stockfish (white) moves first, then LLM (black).
 
+                    if not board.is_game_over():
+                        messages.append(
+                            ChatMessageUser(
+                                content=build_turn_message(sf_san, game)
+                            )
+                        )
+                else:
+                    # --- Stockfish turn (white) ---
                     sf_result = engine.play(board, chess.engine.Limit(time=0.1))
                     assert sf_result.move is not None
-                    logger.info(f"Stockfish moves: {board.san(sf_result.move)}")
+                    sf_san = board.san(sf_result.move)
+                    logger.info(f"Stockfish moves: {sf_san}")
                     board.push(sf_result.move)
                     node = node.add_variation(sf_result.move)
 
                     if board.is_game_over():
                         break
 
-                    move, invalids = await get_llm_move(
-                        model, game, board, llm_color
+                    # --- LLM turn (black) ---
+                    if is_first_llm_turn:
+                        messages.append(
+                            ChatMessageUser(
+                                content=build_first_turn_message(llm_color, game)
+                            )
+                        )
+                        is_first_llm_turn = False
+                    else:
+                        messages.append(
+                            ChatMessageUser(
+                                content=build_turn_message(sf_san, game)
+                            )
+                        )
+
+                    move, invalids = await get_llm_move_in_context(
+                        model, messages, game, board
                     )
                     total_invalid_moves += invalids
                     if move is None:
@@ -326,14 +439,14 @@ def chess_game():
 
 
 @task
-def chess_eval(
+def chess_eval_in_context(
     stockfish_levels: list[int] = [1, 5, 10, 20],
     stockfish_path: str = "/opt/homebrew/bin/stockfish",
 ):
-    """Evaluate an LLM's chess ability against Stockfish at various skill levels.
+    """Evaluate an LLM's chess ability with full conversation history.
 
-    Each sample is a (stockfish_level, llm_color) combination. Use ``--epochs``
-    to play multiple games per configuration.
+    Same eval matrix as chess_eval (stockfish_level x llm_color x epochs),
+    but the model maintains its reasoning in context across the full game.
     """
     samples = []
     for level in stockfish_levels:
@@ -352,6 +465,6 @@ def chess_eval(
             )
     return Task(
         dataset=samples,
-        solver=chess_game(),
+        solver=chess_game_in_context(),
         scorer=chess_game_scorer(),
     )
