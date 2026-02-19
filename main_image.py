@@ -199,26 +199,101 @@ def get_termination_reason(board: chess.Board, llm_move_failed: bool) -> str:
 def build_system_message(llm_color: str, stockfish_level: int) -> str:
     """Build the system message that establishes the persona and format."""
     color_name = llm_color.title()
+    opponent_color = "Black" if llm_color == "white" else "White"
+
+    if llm_color == "black":
+        orientation_note = (
+            "IMPORTANT: The board is shown from YOUR perspective as Black. "
+            "This means rank 1 is at the top and rank 8 is at the bottom; "
+            "file h is on the left and file a is on the right. Keep this "
+            "orientation in mind when reading piece positions from the image."
+        )
+    else:
+        orientation_note = (
+            "The board is shown from your perspective as White. "
+            "Rank 1 is at the bottom and rank 8 is at the top; "
+            "file a is on the left and file h is on the right."
+        )
+
     return f"""\
 You are a chess Grandmaster playing a game of chess. You are playing as \
 {color_name} against Stockfish (skill level {stockfish_level}).
 
-On each turn you will be shown an image of the current board position \
-(oriented from your perspective) and the full move list so far.
+On each turn you will be shown:
+- An image of the current board position (oriented from your perspective).
+- The full move list so far (PGN).
+- The FEN string for the current position (an unambiguous text encoding).
+- A complete list of legal moves in the current position.
 
 The board image uses letters for pieces: K=King, Q=Queen, R=Rook, \
 B=Bishop, N=Knight, and a dot for Pawns. Filled/dark symbols are Black \
 pieces; outline/light symbols are White pieces. Yellow-highlighted squares \
 show the last move. Coordinates (a-h, 1-8) are shown along the edges.
 
-Please respond in two parts:
+{orientation_note}
 
-1. **Analysis**: Briefly analyze the current position and describe your \
-strategic thinking (2-4 sentences). Consider threats, piece activity, pawn \
-structure, and your plan for the next few moves.
+Piece movement rules (remember these when checking move legality):
+- **Rook**: moves in straight lines along ranks or files. BLOCKED by any \
+piece (friendly or enemy) in its path — it cannot jump over pieces.
+- **Bishop**: moves diagonally only. BLOCKED by any piece in its path.
+- **Queen**: moves like a Rook or Bishop (straight lines or diagonals). \
+BLOCKED by any piece in its path.
+- **Knight**: moves in an L-shape (2 squares in one direction + 1 square \
+perpendicular, or vice versa). The ONLY piece that can jump over others. \
+From a given square, a knight has at most 8 possible destinations.
+- **King**: moves exactly ONE square in any direction (horizontal, \
+vertical, or diagonal). Also can castle (O-O or O-O-O) if conditions met.
+- **Pawn**: moves forward one square (or two from its starting rank). \
+Captures diagonally forward one square. Can promote on the 8th rank. \
+En passant is possible immediately after an opponent's pawn double-advance.
 
-2. **Move**: On the LAST line of your response, write your move in exactly \
-this format:
+Please respond in five parts:
+
+1. **Position verification**: Cross-reference the board image with the FEN \
+string and the move list. Walk through where every piece is, reading the \
+coordinates from the board edges carefully. For each piece, state its \
+square (e.g. "My Knight on f3", "Opponent's Bishop on c5"). Confirm which \
+pieces are yours ({color_name}) and which are your opponent's \
+({opponent_color}). Do not skip this step.
+
+2. **Threat assessment**: For each of your opponent's pieces, consider what \
+squares it attacks and whether any of your pieces are under threat. For \
+each of your pieces, consider whether it is defended. Specifically:
+   - List any of your pieces that are attacked by opponent pieces (hanging \
+or inadequately defended).
+   - List any of your opponent's pieces that you could capture.
+   - Check whether your opponent's last move created a check, a fork, a \
+pin, a skewer, or a discovered attack.
+   - Think about what your opponent is planning: what would they play next \
+if it were their turn? What threats are they building?
+
+3. **Analysis and candidate moves**: Now plan your move using the checklist \
+"checks, captures, threats" (CCT):
+   - **Checks**: Can you give check? If so, is it useful?
+   - **Captures**: Can you capture an opponent's piece, especially one that \
+is undefended or higher-value?
+   - **Threats**: Can you create a threat (attack an undefended piece, \
+threaten checkmate, gain a tempo)?
+   After considering CCT, also think about general strategy: piece \
+activity, pawn structure, king safety, and development. List 2-3 candidate \
+moves and briefly evaluate each before choosing the best one.
+
+4. **Move validation**: Before committing to your move, verify it is legal:
+   - State the piece type and its current square.
+   - State the destination square.
+   - For Rooks/Bishops/Queens: list EVERY square along the path from \
+source to destination and confirm each is empty (not blocked by any piece).
+   - For Knights: confirm the destination is a valid L-shape (2+1) from \
+the current square.
+   - For Kings: confirm the destination is exactly one square away \
+(or a valid castling move).
+   - For Pawns: confirm correct direction, distance, and capture rules.
+   - Confirm the destination square is not occupied by your own piece.
+   - **Cross-check: verify your chosen move appears in the legal moves \
+list provided.** If it does not, your move is illegal — pick another.
+
+5. **Move**: On the LAST line of your response, write your chosen move in \
+exactly this format:
    MOVE: <your move in standard algebraic notation>
 
 For example:
@@ -232,7 +307,13 @@ Rules:
 - Do not include the move number.
 - Do not put your move in quotes.
 - Do not start your move with a "+" symbol.
+- Your move MUST be one of the legal moves provided in the prompt.
 - The MOVE: line must be the very last line of your response."""
+
+
+def _format_legal_moves(board: chess.Board) -> str:
+    """Return a sorted, comma-separated list of legal moves in SAN."""
+    return ", ".join(sorted(board.san(m) for m in board.legal_moves))
 
 
 def build_first_turn_content(
@@ -242,20 +323,30 @@ def build_first_turn_content(
 ) -> Content:
     """Build the user message content for the LLM's first turn."""
     pgn = moves_from_game(game)
+    fen = board.fen()
+    legal = _format_legal_moves(board)
     board_data_url = render_board_image(board, llm_color)
 
     if llm_color == "white":
         text = (
             "The game has begun. You are White and it is your turn to make "
             "the first move.\n\n"
-            f"Moves so far: {pgn}\n\n"
-            "Analyze the position and make your move."
+            f"Moves so far: {pgn}\n"
+            f"FEN: {fen}\n"
+            f"Legal moves: {legal}\n\n"
+            "Remember: first cross-reference the board image with the move "
+            "list to verify the position, then analyze, then give your move. "
+            "Your move MUST be one of the legal moves listed above."
         )
     else:
         text = (
             f"The game has begun. You are Black.\n\n"
-            f"Moves so far: {pgn}\n\n"
-            "Analyze the position and make your move."
+            f"Moves so far: {pgn}\n"
+            f"FEN: {fen}\n"
+            f"Legal moves: {legal}\n\n"
+            "Remember: first cross-reference the board image with the move "
+            "list to verify the position, then analyze, then give your move. "
+            "Your move MUST be one of the legal moves listed above."
         )
 
     return [
@@ -272,12 +363,18 @@ def build_turn_content(
 ) -> Content:
     """Build the user message content for a subsequent turn."""
     pgn = moves_from_game(game)
+    fen = board.fen()
+    legal = _format_legal_moves(board)
     board_data_url = render_board_image(board, llm_color)
 
     text = (
         f"Your opponent played: **{opponent_move_san}**\n\n"
-        f"Moves so far: {pgn}\n\n"
-        "Analyze the position and make your move."
+        f"Moves so far: {pgn}\n"
+        f"FEN: {fen}\n"
+        f"Legal moves: {legal}\n\n"
+        "Remember: first cross-reference the board image with the move "
+        "list to verify the position, then analyze, then give your move. "
+        "Your move MUST be one of the legal moves listed above."
     )
 
     return [
@@ -290,18 +387,37 @@ def build_invalid_move_message(
     raw_move: str,
     reason: str,
     game: chess.pgn.Game,
+    board: chess.Board,
+    all_invalid_moves: set[str],
 ) -> str:
     """Build a text-only message telling the model its move was invalid.
 
-    No board image is needed here -- the image from the current turn is
-    already in context.
+    Includes the full list of previously-attempted invalid moves and the
+    complete list of legal moves so the model cannot repeat the mistake.
+    No board image is needed -- the image from the current turn is already
+    in context.
     """
     pgn = moves_from_game(game)
+    fen = board.fen()
+    legal = _format_legal_moves(board)
+
+    invalid_list = ""
+    if all_invalid_moves:
+        formatted = ", ".join(sorted(all_invalid_moves))
+        invalid_list = (
+            f"\n\nThe following moves have already been tried and are "
+            f"invalid — do NOT repeat any of them: {formatted}"
+        )
+
     return (
-        f'Your move "{raw_move}" was invalid ({reason}). '
-        "Please reconsider and provide a legal move.\n\n"
-        f"Moves so far: {pgn}\n\n"
-        "Provide your corrected move (remember: MOVE: <move> on the last line)."
+        f'Your move "{raw_move}" was invalid ({reason}).{invalid_list}\n\n'
+        f"Moves so far: {pgn}\n"
+        f"FEN: {fen}\n"
+        f"Legal moves: {legal}\n\n"
+        "Cross-reference the board image with the move list to re-verify "
+        "the position, then provide your corrected move. "
+        "Your move MUST be one of the legal moves listed above "
+        "(remember: MOVE: <move> on the last line)."
     )
 
 
@@ -331,6 +447,7 @@ async def get_llm_move_in_context(
         were exhausted without obtaining a valid move.
     """
     invalid_attempt_count = 0
+    tried_invalid: set[str] = set()
 
     for attempt in range(MAX_RETRIES):
         try:
@@ -348,6 +465,8 @@ async def get_llm_move_in_context(
                             "(no MOVE: line found)",
                             "could not find a MOVE: line in your response",
                             game,
+                            board,
+                            tried_invalid,
                         )
                     )
                 )
@@ -364,10 +483,11 @@ async def get_llm_move_in_context(
 
             logger.info(f"Invalid move from LLM: {raw_move} ({reason})")
             invalid_attempt_count += 1
+            tried_invalid.add(raw_move)
             messages.append(
                 ChatMessageUser(
                     content=build_invalid_move_message(
-                        raw_move, reason, game
+                        raw_move, reason, game, board, tried_invalid
                     )
                 )
             )
