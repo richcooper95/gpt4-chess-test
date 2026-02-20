@@ -2,3 +2,4 @@ inspect-ai>=0.3.179
 chess==1.10.0
 python-chess==1.999
 fentoboardimage>=1.4.0
+matplotlib>=3.8.0
