@@ -1,0 +1,65 @@
+{
+  "test_config": {
+    "skill_level": 1,
+    "time_per_move": 0.1
+  },
+  "ref_config": {
+    "time_per_move": 2.0
+  },
+  "matchups": [
+    {
+      "ref_elo": 1320,
+      "wins": 25,
+      "draws": 5,
+      "losses": 20,
+      "score": 0.55,
+      "implied_elo": "1355"
+    },
+    {
+      "ref_elo": 1370,
+      "wins": 29,
+      "draws": 2,
+      "losses": 19,
+      "score": 0.6,
+      "implied_elo": "1440"
+    },
+    {
+      "ref_elo": 1420,
+      "wins": 24,
+      "draws": 1,
+      "losses": 25,
+      "score": 0.49,
+      "implied_elo": "1413"
+    },
+    {
+      "ref_elo": 1470,
+      "wins": 18,
+      "draws": 1,
+      "losses": 31,
+      "score": 0.37,
+      "implied_elo": "1378"
+    },
+    {
+      "ref_elo": 1520,
+      "wins": 17,
+      "draws": 5,
+      "losses": 28,
+      "score": 0.39,
+      "implied_elo": "1442"
+    },
+    {
+      "ref_elo": 1570,
+      "wins": 17,
+      "draws": 4,
+      "losses": 29,
+      "score": 0.38,
+      "implied_elo": "1485"
+    }
+  ],
+  "mle_elo": 1418.0,
+  "se": 20.7,
+  "ci95_lo": 1377.4,
+  "ci95_hi": 1458.5,
+  "total_games": 300,
+  "wall_seconds": 29097.8
+}

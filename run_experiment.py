@@ -21,6 +21,11 @@ Usage:
     python run_experiment.py \\
         --models openrouter/anthropic/claude-sonnet-4-20250514 \\
         --levels 0 1 2 3
+
+    # Text-only models (skip Board Image level, disable images at levels 5-8)
+    python run_experiment.py \\
+        --models openrouter/meta-llama/llama-4-maverick \\
+        --no-image
 """
 
 import argparse
@@ -122,7 +127,15 @@ def main() -> None:
         "--base-dir", default="experiment_logs",
         help="Root directory for experiment logs.",
     )
+    parser.add_argument(
+        "--no-image", action="store_true",
+        help="Skip level 4 (Board Image) and disable images for levels 5-8. "
+             "Use for text-only models that don't support image input.",
+    )
     args = parser.parse_args()
+
+    if args.no_image:
+        args.levels = [lv for lv in args.levels if lv != 4]
 
     n_configs = len(args.sf_levels) * len(args.levels)
     n_models = len(args.models)
@@ -156,6 +169,7 @@ def main() -> None:
             scaffold_level=lv,
             stockfish_levels=[sf],
             stockfish_path=args.sf_path,
+            no_image=args.no_image,
         )
         for sf in args.sf_levels
         for lv in args.levels

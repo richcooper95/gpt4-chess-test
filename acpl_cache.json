@@ -1,0 +1,650 @@
+{
+  "358319ea5d4afbcfbf0ff871a0143f50": {
+    "acpl": 95.8,
+    "accuracy": 46.9
+  },
+  "42f5e3caeb15d5d353efa3067b382343": {
+    "acpl": 65.6,
+    "accuracy": 69.0
+  },
+  "6cdb0ce8fa0da2722a75fd37f3ca118f": {
+    "acpl": 76.4,
+    "accuracy": 61.5
+  },
+  "6e802c09c63e64ed71c6d5e88143f231": {
+    "acpl": 31.3,
+    "accuracy": 89.3
+  },
+  "b76b53cac26449b0fbd72885ea84ec14": {
+    "acpl": 24.1,
+    "accuracy": 92.9
+  },
+  "3cad23c43ff50038fb0b97c7b5357c97": {
+    "acpl": 13.4,
+    "accuracy": 97.9
+  },
+  "f815d0b68a3e0d311ab52723613c07aa": {
+    "acpl": 16.5,
+    "accuracy": 96.5
+  },
+  "e7f9155bed61460669659e4ff6fe1531": {
+    "acpl": 68.2,
+    "accuracy": 67.3
+  },
+  "aa3afee9692dce1bd4f2e8a95b1994e5": {
+    "acpl": 26.4,
+    "accuracy": 91.8
+  },
+  "605ca474deacef319d4fa6f26605019a": {
+    "acpl": 9.7,
+    "accuracy": 99.5
+  },
+  "7ece7afa813c42ea3cb25ac9a24b4f70": {
+    "acpl": 25.8,
+    "accuracy": 92.1
+  },
+  "3560b8d1f53d6ecb7050cf010215dc54": {
+    "acpl": 84.4,
+    "accuracy": 55.7
+  },
+  "a9c33201fc2887b8764b4f2fb65a5c11": {
+    "acpl": 130.6,
+    "accuracy": 16.5
+  },
+  "aca4b1f7bef8572cf330e91a5e81163b": {
+    "acpl": 74.8,
+    "accuracy": 62.7
+  },
+  "704d19e2bb07fb48a72874e0e6b3c4bb": {
+    "acpl": 17.1,
+    "accuracy": 96.2
+  },
+  "67e16934aa656f4f64c26ee63e41af2b": {
+    "acpl": 7.8,
+    "accuracy": 100.0
+  },
+  "da38b0b44e380e2469761d5871a210e5": {
+    "acpl": 48.9,
+    "accuracy": 79.5
+  },
+  "39f28cf06b983e7d0f86f754e12db9b0": {
+    "acpl": 58.6,
+    "accuracy": 73.6
+  },
+  "54db62b73984af6ab492c1415da0c78c": {
+    "acpl": 112.8,
+    "accuracy": 32.7
+  },
+  "acbcfa323d75bec91aa200446ba1a274": {
+    "acpl": 54.0,
+    "accuracy": 76.4
+  },
+  "7bbc1d0a93d82685ec5b04f69a040538": {
+    "acpl": 91.5,
+    "accuracy": 50.3
+  },
+  "729d4a24809ebbef8698be8b698167b2": {
+    "acpl": 49.1,
+    "accuracy": 79.4
+  },
+  "c216943fd1c1e69ece2dba9a627eebd0": {
+    "acpl": 7.2,
+    "accuracy": 100.0
+  },
+  "83f15ccc322677c026cff09bc124dfbb": {
+    "acpl": 5.9,
+    "accuracy": 100.0
+  },
+  "149a5f4e5f6e5438b1d3fd2e57f1d375": {
+    "acpl": 103.5,
+    "accuracy": 40.6
+  },
+  "e54856d031874ee406a9061bb304ae44": {
+    "acpl": 46.6,
+    "accuracy": 80.9
+  },
+  "18d2cbe49619f3af58b2466b33637a38": {
+    "acpl": 82.4,
+    "accuracy": 57.2
+  },
+  "02dbb58e245d9bd7667b8745abe323fc": {
+    "acpl": 51.0,
+    "accuracy": 78.3
+  },
+  "6d50f445d1de545d6352450b03ed38ec": {
+    "acpl": 21.4,
+    "accuracy": 94.2
+  },
+  "0e6268a5541b10e7fc5b0919df30793d": {
+    "acpl": 39.5,
+    "accuracy": 84.9
+  },
+  "2db45a34552a22df0423ea4e317d35e5": {
+    "acpl": 108.9,
+    "accuracy": 36.1
+  },
+  "7b1b1af5871d7144f0dc83ab7f1d7b63": {
+    "acpl": 63.0,
+    "accuracy": 70.8
+  },
+  "5f6e465caf40005bef12d2660d7cc819": {
+    "acpl": 94.5,
+    "accuracy": 47.9
+  },
+  "add259e079ee7f6a3e3ffb00459ecf90": {
+    "acpl": 174.0,
+    "accuracy": 0
+  },
+  "e492ab4aa1fdbd2b795919ce75d4c411": {
+    "acpl": 21.4,
+    "accuracy": 94.2
+  },
+  "bb0ca142aeb67e10853dc701e6c0ec73": {
+    "acpl": 42.0,
+    "accuracy": 83.5
+  },
+  "6c7f328f86371d02cb1d4d317531edf4": {
+    "acpl": 81.1,
+    "accuracy": 58.1
+  },
+  "7d0dbc74c811ecf1ba7a9ff867a8cfc3": {
+    "acpl": 123.6,
+    "accuracy": 23.0
+  },
+  "9e032ecf9d535ce05519a28f3bba76ee": {
+    "acpl": 110.5,
+    "accuracy": 34.7
+  },
+  "f7b27645a470e4c9a61928eb0654b616": {
+    "acpl": 124.0,
+    "accuracy": 22.6
+  },
+  "11d877adab0b1f96be4a27d17a37ecc7": {
+    "acpl": 26.1,
+    "accuracy": 91.9
+  },
+  "3ea05eaa7c5f851b5164d58639d81014": {
+    "acpl": 39.1,
+    "accuracy": 85.2
+  },
+  "4618f87a9fd826f0b3af3bade1cb7f45": {
+    "acpl": 70.0,
+    "accuracy": 66.0
+  },
+  "c64832930bb412a64cc69dd9c97c11f5": {
+    "acpl": 116.1,
+    "accuracy": 29.8
+  },
+  "3ba321bf0ce371702979ad26be9f288f": {
+    "acpl": 86.7,
+    "accuracy": 54.0
+  },
+  "4333a134fe3b16ade8b3c0650ca681d8": {
+    "acpl": 76.3,
+    "accuracy": 61.6
+  },
+  "df52d651c69bc7331a23f878695ec237": {
+    "acpl": 129.6,
+    "accuracy": 17.4
+  },
+  "19c63c73164a77264129496bc0129f19": {
+    "acpl": 56.8,
+    "accuracy": 74.7
+  },
+  "db38945740df29a3f4597542b6298e59": {
+    "acpl": 169.2,
+    "accuracy": 0
+  },
+  "3f7d5256f30b6cc343a1fcebfb83d89f": {
+    "acpl": 112.5,
+    "accuracy": 33.0
+  },
+  "aabf431bba44d63e019b3acbbffa7dcf": {
+    "acpl": 52.5,
+    "accuracy": 77.4
+  },
+  "046df106a0458eb47de761d33720262e": {
+    "acpl": 79.0,
+    "accuracy": 59.7
+  },
+  "5a53ab361bd8af8aeeb3ea64897fae6e": {
+    "acpl": 92.6,
+    "accuracy": 49.4
+  },
+  "e5de1b5297540d83f886df606f31c5c4": {
+    "acpl": 67.4,
+    "accuracy": 67.8
+  },
+  "81567f4239bbb2dd1afcd69e0d48d082": {
+    "acpl": 130.0,
+    "accuracy": 17.1
+  },
+  "45a872a0ad785d7d042ceb117ee6179f": {
+    "acpl": 126.1,
+    "accuracy": 20.7
+  },
+  "fea74eae07e572808ec739bc58c712e0": {
+    "acpl": 18.2,
+    "accuracy": 95.7
+  },
+  "dd9a7da09c7cbfe278d87f9233c336d2": {
+    "acpl": 37.6,
+    "accuracy": 86.0
+  },
+  "96cade9d168ba20846d2ac80783b16ed": {
+    "acpl": 105.4,
+    "accuracy": 39.1
+  },
+  "6230f27698f4a6dcb9b6c035e00ef412": {
+    "acpl": 64.1,
+    "accuracy": 70.0
+  },
+  "af6da4c17a3419ed3d305eb5bcaed37a": {
+    "acpl": 108.4,
+    "accuracy": 36.5
+  },
+  "af5d28aeaebb8472db007794dd95c21d": {
+    "acpl": 80.7,
+    "accuracy": 58.4
+  },
+  "fe9cd38aca5ed708fafaa9de593a6979": {
+    "acpl": 14.6,
+    "accuracy": 97.4
+  },
+  "9a75693e9a89805cc98e8c3d78fa71d9": {
+    "acpl": 78.6,
+    "accuracy": 60.0
+  },
+  "cb373b3ea624ac2696ed26dbf2c7a831": {
+    "acpl": 21.5,
+    "accuracy": 94.2
+  },
+  "b9ba567a7fd5a2b3abad9b2f2f972353": {
+    "acpl": 34.0,
+    "accuracy": 87.9
+  },
+  "eedd30f2928ab1f84126760d139582ad": {
+    "acpl": 147.4,
+    "accuracy": 0
+  },
+  "6d7a6cde048dcba4b5bf67a9c7c434fc": {
+    "acpl": 145.2,
+    "accuracy": 2.1
+  },
+  "7289b52bfd7d1d159a6ede1e37d93485": {
+    "acpl": 121.3,
+    "accuracy": 25.2
+  },
+  "3899d20c689cdc2eb065fdbe7f88bb38": {
+    "acpl": 82.0,
+    "accuracy": 57.5
+  },
+  "27fae4918f919ba3ebe0b00b5e1771f7": {
+    "acpl": 86.3,
+    "accuracy": 54.3
+  },
+  "0627b660daa4c7f149f50c2f1c733000": {
+    "acpl": 95.8,
+    "accuracy": 46.9
+  },
+  "daf4738e3dface1d31f26bb17f27a254": {
+    "acpl": 86.2,
+    "accuracy": 54.3
+  },
+  "d30095c5a5b912845f10353d57f9df16": {
+    "acpl": 132.5,
+    "accuracy": 14.7
+  },
+  "d54179f2b6d788c874a54a82d15358eb": {
+    "acpl": 38.5,
+    "accuracy": 85.5
+  },
+  "bfc596ca96c4249628615dfeaac3a36d": {
+    "acpl": 36.2,
+    "accuracy": 86.7
+  },
+  "e8490f6fa75dac5a689b2251134f7960": {
+    "acpl": 153.3,
+    "accuracy": 0
+  },
+  "12b0d8ebe10db1555b0680f37b2182f5": {
+    "acpl": 71.7,
+    "accuracy": 64.9
+  },
+  "53acefd270de710beaa2931ca2e640b6": {
+    "acpl": 105.6,
+    "accuracy": 38.8
+  },
+  "5b9f22a4843b63f2ac4af01961a15ea9": {
+    "acpl": 114.9,
+    "accuracy": 30.8
+  },
+  "c71b1339bd0630d811754622333ddcfa": {
+    "acpl": 65.3,
+    "accuracy": 69.2
+  },
+  "6dfa0ace82177f7ccf27ddd81434d4c6": {
+    "acpl": 74.2,
+    "accuracy": 63.1
+  },
+  "435a4a6a4862d0720b5738ddc904e589": {
+    "acpl": 62.8,
+    "accuracy": 70.8
+  },
+  "22f0027ef1851d7479a0cc8e8bfedc7a": {
+    "acpl": 33.9,
+    "accuracy": 87.9
+  },
+  "eed2da3fadae2fbe95f2a86d94531d58": {
+    "acpl": 129.1,
+    "accuracy": 17.9
+  },
+  "5a0f79bc691e468aa095c14db952d632": {
+    "acpl": 118.3,
+    "accuracy": 27.8
+  },
+  "5fa28d6b56a1f4a7c5aadb8f525950f6": {
+    "acpl": 84.1,
+    "accuracy": 56.0
+  },
+  "132ccbc0871aae4d85eb3bb098ab20f1": {
+    "acpl": 99.3,
+    "accuracy": 44.0
+  },
+  "c6b99d0dccb0082dbe7467bd6e61ad07": {
+    "acpl": 32.2,
+    "accuracy": 88.8
+  },
+  "e28d424c48afcf6aacfefdb643424818": {
+    "acpl": 55.1,
+    "accuracy": 75.7
+  },
+  "f08ef735b8c68f9854f663a088d58584": {
+    "acpl": 201.5,
+    "accuracy": 0
+  },
+  "dec6b568f575e4c104d6b1d4c769144e": {
+    "acpl": 96.2,
+    "accuracy": 46.5
+  },
+  "ab296eef40b45c0daf55817e37ca4b21": {
+    "acpl": 94.4,
+    "accuracy": 48.0
+  },
+  "339d313d415dd3f51655a85179e45383": {
+    "acpl": 64.6,
+    "accuracy": 69.7
+  },
+  "bcc535a82c761c1efdf1d6377abb7262": {
+    "acpl": 19.7,
+    "accuracy": 95.0
+  },
+  "986fae180b1cbf84126bcc0c4578a8c8": {
+    "acpl": 45.9,
+    "accuracy": 81.3
+  },
+  "93ce0e372690fdb9c99efe442cc2927c": {
+    "acpl": 171.1,
+    "accuracy": 0
+  },
+  "5f3395773ad01f28173939a96a31a3cb": {
+    "acpl": 125.9,
+    "accuracy": 20.9
+  },
+  "62a7e6acf4931d4b7c3fc295006886a1": {
+    "acpl": 95.7,
+    "accuracy": 47.0
+  },
+  "6cc2b35e241a24b6a45e711cdae57ba7": {
+    "acpl": 40.5,
+    "accuracy": 84.4
+  },
+  "f0dadca6b3546694f501a96a37a75ca1": {
+    "acpl": 82.7,
+    "accuracy": 57.0
+  },
+  "0cdf20b03f649de147a1bdc2173d2d58": {
+    "acpl": 80.9,
+    "accuracy": 58.3
+  },
+  "d3845fd3c05a902b8e617246c2d315a8": {
+    "acpl": 173.9,
+    "accuracy": 0
+  },
+  "acf85f9aa4b080c5726f198d4c8b0846": {
+    "acpl": 222.7,
+    "accuracy": 0
+  },
+  "3af4a3df911ad94058a6dff628b1c64e": {
+    "acpl": 134.1,
+    "accuracy": 13.2
+  },
+  "893d1aeeb7eb24a8419121fab42f94b6": {
+    "acpl": 100.3,
+    "accuracy": 43.3
+  },
+  "21fcb841c90154a93d9824d114e7e01f": {
+    "acpl": 59.2,
+    "accuracy": 73.2
+  },
+  "683c36911792e25b4ebdee9ad67879f8": {
+    "acpl": 53.5,
+    "accuracy": 76.7
+  },
+  "412c91bee2fb4eb923bb35cb69c92f82": {
+    "acpl": 136.5,
+    "accuracy": 10.8
+  },
+  "43c0c3e79668a58761faae7cd2288719": {
+    "acpl": 147.4,
+    "accuracy": 0
+  },
+  "bf12a18806f38fe72362eb4dfc758769": {
+    "acpl": 184.1,
+    "accuracy": 0
+  },
+  "f5c6b3c83571f328b5169f0ca8c12cc6": {
+    "acpl": 83.8,
+    "accuracy": 56.2
+  },
+  "db9bb84cf91b5886847af1d201049fe3": {
+    "acpl": 29.3,
+    "accuracy": 90.3
+  },
+  "9351f15b1c6893cabb3a7dd7b31b51f0": {
+    "acpl": 44.1,
+    "accuracy": 82.3
+  },
+  "09dfe8f3b94f2dccad4ecd90c9258340": {
+    "acpl": 83.0,
+    "accuracy": 56.8
+  },
+  "bce18478cb75f42d0773d1c21c6ac512": {
+    "acpl": 75.1,
+    "accuracy": 62.5
+  },
+  "ec53bee5bcf9ffeed680dda421cccc82": {
+    "acpl": 117.7,
+    "accuracy": 28.4
+  },
+  "073cf9b15323e2b3aa88fbcb8e4b0e1d": {
+    "acpl": 87.9,
+    "accuracy": 53.0
+  },
+  "84341155f0a3c68aaae94c3a1e4907b1": {
+    "acpl": 41.7,
+    "accuracy": 83.7
+  },
+  "241e595f4a3e3efd54ba32473fe0b6db": {
+    "acpl": 60.0,
+    "accuracy": 72.7
+  },
+  "79b702ac1eaea255b653945d9527d47e": {
+    "acpl": 148.4,
+    "accuracy": 0
+  },
+  "b2fa5a75eaacaaff30facd1544e98c80": {
+    "acpl": 107.3,
+    "accuracy": 37.4
+  },
+  "7f2c948b905b6ca163c368337b5af4b7": {
+    "acpl": 111.2,
+    "accuracy": 34.1
+  },
+  "51f1f96a7b2265dbff3aa119f62dc404": {
+    "acpl": 45.6,
+    "accuracy": 81.4
+  },
+  "c534b3fcf39a7a3521c2ac2a8e6cdaa1": {
+    "acpl": 60.1,
+    "accuracy": 72.6
+  },
+  "e104f42bc135567571890a4708cc7fa9": {
+    "acpl": 33.0,
+    "accuracy": 88.4
+  },
+  "d059c3e0c4ad2ba5def0161cf9cc4a99": {
+    "acpl": 139.8,
+    "accuracy": 7.6
+  },
+  "f70cddf28fb081632757e631f8e7cc85": {
+    "acpl": 123.3,
+    "accuracy": 23.3
+  },
+  "913ae2c17fd9b4b0dc1d5bb62745c909": {
+    "acpl": 52.3,
+    "accuracy": 77.5
+  },
+  "bc1555c855bb21aea5d47550f415f4da": {
+    "acpl": 59.8,
+    "accuracy": 72.8
+  },
+  "33ef2743550f942acfd4ce34a8fa412f": {
+    "acpl": 111.5,
+    "accuracy": 33.8
+  },
+  "d082b5b8ce6d7afc5848e3c9a3517173": {
+    "acpl": 107.9,
+    "accuracy": 36.9
+  },
+  "7a479bcc32818e0bea2dd14a9a1c7efa": {
+    "acpl": 168.6,
+    "accuracy": 0
+  },
+  "77dcdaddb7b93def46ba237c74ba3517": {
+    "acpl": 41.9,
+    "accuracy": 83.6
+  },
+  "58dcad994677e20644efc18959d6bbb3": {
+    "acpl": 141.2,
+    "accuracy": 6.2
+  },
+  "76eaa2a16dd7e451dc4ea3ce5375588f": {
+    "acpl": 88.9,
+    "accuracy": 52.3
+  },
+  "d605308f1a6279172d7b802459ec0f15": {
+    "acpl": 43.7,
+    "accuracy": 82.6
+  },
+  "ac42f60e9214ba6ad7b2e9c689e3540f": {
+    "acpl": 42.7,
+    "accuracy": 83.1
+  },
+  "8d0f67234dc4ac4baf7a029cb0de2084": {
+    "acpl": 195.4,
+    "accuracy": 0
+  },
+  "ed61b1ce7f272a4fe90467a586bdb61c": {
+    "acpl": 125.0,
+    "accuracy": 21.7
+  },
+  "11edd2f868654bf954fce7978b7f2be6": {
+    "acpl": 121.2,
+    "accuracy": 25.2
+  },
+  "4c10d355f619fa5542f2d9cda4bb64bc": {
+    "acpl": 63.4,
+    "accuracy": 70.4
+  },
+  "ef90b58c8df03766003b39f73527df3f": {
+    "acpl": 112.8,
+    "accuracy": 32.7
+  },
+  "b6662d966e5edea500f0ab160a540777": {
+    "acpl": 16.6,
+    "accuracy": 96.5
+  },
+  "0872e16a7ca0b0ef6a8c54e2a9814ab2": {
+    "acpl": 150.6,
+    "accuracy": 0
+  },
+  "48cff9cd7affc362b1ddfae8ec6f8af4": {
+    "acpl": 106.4,
+    "accuracy": 38.2
+  },
+  "df63ad28bd58dafd340351d61aff16d7": {
+    "acpl": 41.0,
+    "accuracy": 84.1
+  },
+  "7c9cd4bc293150fcd5cb03f00b84dbc2": {
+    "acpl": 116.4,
+    "accuracy": 29.6
+  },
+  "c2ab410ee8d9063528a1fb64a0242250": {
+    "acpl": 86.8,
+    "accuracy": 53.9
+  },
+  "40d9db53f77b3fb4a1491b1712f8959e": {
+    "acpl": 86.3,
+    "accuracy": 54.3
+  },
+  "b044b35cd3e5ba395acfc48ae27feb9f": {
+    "acpl": 98.9,
+    "accuracy": 44.4
+  },
+  "3ae66ca76c0556a9f9c350dd68f72853": {
+    "acpl": 95.9,
+    "accuracy": 46.8
+  },
+  "03b12b51a541e8942d5a440deda85244": {
+    "acpl": 165.3,
+    "accuracy": 0
+  },
+  "9c48c401444e576a60e6a552c1e6a657": {
+    "acpl": 119.8,
+    "accuracy": 26.5
+  },
+  "12c6b546c7b113c4e86c56a389882759": {
+    "acpl": 71.6,
+    "accuracy": 64.9
+  },
+  "210de86b04e2a4f1fa2450ec8017cbb4": {
+    "acpl": 103.3,
+    "accuracy": 40.8
+  },
+  "2aadef1b89f23fe49acaaeb46170ebd0": {
+    "acpl": 71.2,
+    "accuracy": 65.2
+  },
+  "12bf9460e0c50351fa2cfa83a8ccec94": {
+    "acpl": 121.1,
+    "accuracy": 25.4
+  },
+  "fdeadeb3316e6d1e6bf228e0edd8f53d": {
+    "acpl": 134.1,
+    "accuracy": 13.2
+  },
+  "00d49e53eb97411bc52070645e9e75cb": {
+    "acpl": 127.0,
+    "accuracy": 19.9
+  },
+  "240ef27660c3b8359e09b47c73496485": {
+    "acpl": 80.6,
+    "accuracy": 58.5
+  },
+  "64ef613588c7f2b98443410fcfb6509a": {
+    "acpl": 73.8,
+    "accuracy": 63.4
+  }
+}

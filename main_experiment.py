@@ -85,12 +85,12 @@ LEVEL_LABELS = {
 # ---------------------------------------------------------------------------
 
 
-def _flags(level: int) -> dict[str, bool]:
+def _flags(level: int, *, no_image: bool = False) -> dict[str, bool]:
     return {
         "accumulate_invalid": level >= 1,
         "use_conversation": level >= 2,
         "include_fen": level >= 3,
-        "include_image": level >= 4,
+        "include_image": level >= 4 and not no_image,
         "structured_response": level >= 5,
         "include_legal_moves": level >= 6,
         "include_piece_rules": level >= 7,
@@ -239,10 +239,19 @@ def get_termination_reason(board: chess.Board, llm_move_failed: bool) -> str:
     return "unknown"
 
 
+_MOVE_NUMBER_RE = re.compile(r"^\d+\.{1,3}\s*")
+
+
+def _strip_move_number(raw: str) -> str:
+    """Remove leading move-number prefixes like '3. ', '3... ', '12...'."""
+    return _MOVE_NUMBER_RE.sub("", raw)
+
+
 def parse_move_from_response(text: str) -> Optional[str]:
-    match = re.search(r"^MOVE:\s*(.+)$", text.strip(), re.MULTILINE)
-    if match:
-        return match.group(1).strip().strip('"').strip("'").lstrip("+")
+    matches = re.findall(r"MOVE:\s*(\S+)", text)
+    if matches:
+        raw = matches[-1].strip('"').strip("'").lstrip("+")
+        return _strip_move_number(raw)
     return None
 
 
@@ -372,6 +381,19 @@ def _add_category(
 
 
 # ---------------------------------------------------------------------------
+# Model-specific helpers
+# ---------------------------------------------------------------------------
+
+_SIMPLE_PERSONA_PATTERNS = ["gpt-3.5-turbo-instruct"]
+
+
+def _needs_simple_persona(model_name: str) -> bool:
+    """Return True for models that refuse roleplay prompts."""
+    lower = model_name.lower()
+    return any(p in lower for p in _SIMPLE_PERSONA_PATTERNS)
+
+
+# ---------------------------------------------------------------------------
 # Prompt building — standalone mode (levels 0-1)
 # ---------------------------------------------------------------------------
 
@@ -382,6 +404,8 @@ def _build_standalone_prompt(
     board: chess.Board,
     llm_color: str,
     invalid_moves: set[str],
+    *,
+    simple_persona: bool = False,
 ) -> str:
     color_name = llm_color.title()
 
@@ -393,13 +417,23 @@ def _build_standalone_prompt(
             f"not be returned:\n {invalid_list}\n"
         )
 
-    return f"""\
-You are a chess Grandmaster. You are about to be given a list of moves \
-in PGN notation, and you will make the best move available to you, using \
-all of your knowledge of chess. You can take all the time to think that \
-you need. Think deeply - you are a Grandmaster!
+    if simple_persona:
+        opening = (
+            f"Given the following chess game in PGN notation, provide "
+            f"the best next move for {color_name}."
+        )
+    else:
+        opening = (
+            f"You are a chess Grandmaster. You are about to be given a "
+            f"list of moves in PGN notation, and you will make the best "
+            f"move available to you, using all of your knowledge of chess. "
+            f"You can take all the time to think that you need. Think "
+            f"deeply - you are a Grandmaster!\n\n"
+            f"You will always play as {color_name}."
+        )
 
-You will always play as {color_name}.
+    return f"""\
+{opening}
 
 You will only reply with your move in standard algebraic notation, \
 e.g. "e4" or "Nf3".
@@ -426,18 +460,26 @@ Your move (which will replace the * in the line above):
 
 
 def _build_system_message(
-    flags: dict[str, bool], llm_color: str, stockfish_level: int
+    flags: dict[str, bool], llm_color: str, stockfish_level: int,
+    *, simple_persona: bool = False,
 ) -> str:
     color_name = llm_color.title()
     opponent_color = "Black" if llm_color == "white" else "White"
     parts: list[str] = []
 
     # -- opening --
-    parts.append(
-        f"You are a chess Grandmaster playing a game of chess. You are "
-        f"playing as {color_name} against Stockfish (skill level "
-        f"{stockfish_level})."
-    )
+    if simple_persona:
+        parts.append(
+            f"You are playing a game of chess as {color_name} against "
+            f"Stockfish (skill level {stockfish_level}). Provide the best "
+            f"move you can each turn."
+        )
+    else:
+        parts.append(
+            f"You are a chess Grandmaster playing a game of chess. You are "
+            f"playing as {color_name} against Stockfish (skill level "
+            f"{stockfish_level})."
+        )
 
     # -- what the model receives each turn --
     info = ["The full move list so far (PGN)."]
@@ -740,6 +782,8 @@ async def _get_llm_move_standalone(
     game: chess.pgn.Game,
     board: chess.Board,
     llm_color: str,
+    *,
+    simple_persona: bool = False,
 ) -> tuple[Optional[chess.Move], int, dict[str, int]]:
     """Standalone mode (levels 0-1): fresh prompt each attempt."""
     invalid_moves: set[str] = set()
@@ -748,11 +792,14 @@ async def _get_llm_move_standalone(
 
     for _ in range(MAX_RETRIES):
         prompt = _build_standalone_prompt(
-            flags, game, board, llm_color, invalid_moves
+            flags, game, board, llm_color, invalid_moves,
+            simple_persona=simple_persona,
         )
         try:
             response = await model.generate(prompt)
-            raw = response.completion.strip().lstrip("+")
+            raw = _strip_move_number(
+                response.completion.strip().lstrip("+")
+            )
 
             try:
                 return board.parse_san(raw), invalid_count, categories
@@ -925,10 +972,12 @@ def chess_game_experiment():
         stockfish_level: int = state.metadata["stockfish_level"]
         stockfish_path: str = state.metadata["stockfish_path"]
         llm_color: str = state.metadata["llm_color"]
+        no_image: bool = state.metadata.get("no_image", False)
         llm_plays_white = llm_color == "white"
 
-        flags = _flags(scaffold_level)
+        flags = _flags(scaffold_level, no_image=no_image)
         model = get_model()
+        simple_persona = _needs_simple_persona(model.name)
 
         board = chess.Board()
         game = chess.pgn.Game()
@@ -947,7 +996,8 @@ def chess_game_experiment():
             messages.append(
                 ChatMessageSystem(
                     content=_build_system_message(
-                        flags, llm_color, stockfish_level
+                        flags, llm_color, stockfish_level,
+                        simple_persona=simple_persona,
                     )
                 )
             )
@@ -972,7 +1022,8 @@ def chess_game_experiment():
                         )
                     else:
                         move, inv, cats = await _get_llm_move_standalone(
-                            model, flags, game, board, llm_color
+                            model, flags, game, board, llm_color,
+                            simple_persona=simple_persona,
                         )
 
                     total_invalid_moves += inv
@@ -1042,7 +1093,8 @@ def chess_game_experiment():
                         )
                     else:
                         move, inv, cats = await _get_llm_move_standalone(
-                            model, flags, game, board, llm_color
+                            model, flags, game, board, llm_color,
+                            simple_persona=simple_persona,
                         )
 
                     total_invalid_moves += inv
@@ -1090,11 +1142,13 @@ def chess_eval_experiment(
     scaffold_level: int = 0,
     stockfish_levels: list[int] = [1],
     stockfish_path: str = "/opt/homebrew/bin/stockfish",
+    no_image: bool = False,
 ):
     """Evaluate LLM chess ability at a given scaffolding level.
 
     Each sample is a (stockfish_level, llm_color) combination.
     Use ``--epochs`` to play multiple games per configuration.
+    Set ``no_image=True`` to disable board images (for text-only models).
     """
     samples = []
     for level in stockfish_levels:
@@ -1112,6 +1166,7 @@ def chess_eval_experiment(
                         "stockfish_path": stockfish_path,
                         "llm_color": llm_color,
                         "scaffold_level": scaffold_level,
+                        "no_image": no_image,
                     },
                 )
             )
